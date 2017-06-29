@@ -1,0 +1,14 @@
+TODO:
+
+sudo apt-get update
+sudo apt-get install hostapd
+sudo apt-get install isc-dchp-server
+sudo apt-get install iptables-persistent
+#Say 'yes' to both config screens if they appear
+
+edit /etc/dhcp/dhcpd.conf, this file controls dhcp server.
+comment out option domain-name "example.org" and option domain-name-servers lines
+uncomment the line that says 'authoritative'
+
+... a bunch of other stuff in an Adafruit pdf.  Find it.
+ 

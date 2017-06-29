@@ -1,0 +1,32 @@
+Project P172
+Nonosoro LLC
+2017-June-28
+
+This system is an audiovisual ambiance tool for a Tiki-themed bar.  It plays the sound of thunder, followed by rain, and synchronized flashing white lights to simulate lightning, at the press of a button.
+
+System controller is a Raspberry Pi Model 1 A+.  This was selected for its power efficiency, and because unlike some Rpi models which are even lower power, it retains the HDMI and audio output ports of its bigger brothers.
+
+Peripheral devices are:
+
+1. Analog audio, on audio output port, to a pair of USB-powered PC speakers.
+2. A button input, on GPIO.  Electrically this consists of a button on the case parallel-connected to a connector for a remote button for installation convenience.
+3. A light-enable output, on GPIO.  Electrically this is split into two parallel-connected, 2-conductor cable connectors, which carry ground and enable signal to the lighting controllers.
+4. A "wi-pi" USB wireless LAN dongle, on the sole USB-A port.
+5. Power input, on the USB-micro port.  The power is expected to come from a USB charger brick shared with the speakers.
+
+GPIO is 3.3V logic.  Inputs are configured to use internal pullups and therefore sense active-low signals.
+
+-----------
+
+System will be configured to be 'headless' - i.e., without monitor or keyboard.  Given the lack of ethernet port and single USB device port, this necessitates use of a Wi-fi dongle for programming updates.
+
+PLAN:
+- configure Rpi to produce an access point on its wlan0 port when present.
+-- This AP will be named "CloudLightning"
+-- user: pi
+-- pass: to be determined, certainly not written down here.
+
+- configure DHCP on this wireless access point.
+-- This will allow me to login via SSH whenever updates or maintenance are required.
+
+
