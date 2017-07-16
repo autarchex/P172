@@ -1,14 +1,10 @@
 TODO:
+* finish setting up headless mode and autologin on the Pi
+* flesh out the GPIO setup
+* flesh out the selection of a random thunder event
+* flesh out the shell execution of omxplayer, figure out how to play from an arbitrary timepoint and duration
+* figure out how to do relative volume and leadin/leadout
+* heartbeat
 
-sudo apt-get update
-sudo apt-get install hostapd
-sudo apt-get install isc-dchp-server
-sudo apt-get install iptables-persistent
-#Say 'yes' to both config screens if they appear
 
-edit /etc/dhcp/dhcpd.conf, this file controls dhcp server.
-comment out option domain-name "example.org" and option domain-name-servers lines
-uncomment the line that says 'authoritative'
 
-... a bunch of other stuff in an Adafruit pdf.  Find it.
- 
