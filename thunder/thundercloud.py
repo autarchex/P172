@@ -2,6 +2,9 @@
 # Pi should be set up to run this at startup just after automatic login.
 
 import RPi.GPIO as gpio
+from random import randint
+import subprocess
+import time
 
 timingfilename = "thundertiming"
 thunderevents = {}                  #dictionary stores available thunder events to play
@@ -9,16 +12,21 @@ button_pin = 23                     #trigger button input on port 23, active low
 heartbeat_pin = 25                  #heartbeat LED output on port 25, active high
 lightning1_pin = 26                 #simulated lightning LEDs, bank 1, output on port 26, active high
 lightning2_pin = 27                 # "" bank 2
+heartbeat_period = 2
+heartbeat_state = 0
+heartbeat_lasttime = 0
 
 
 def setup():
     #Setup GPIO
-    gpio.setmode(gpio.BCM)
+    gpio.setmode(gpio.BOARD)        #use board-relative pin numbering, not SOC-chip-relative numbering
+    #gpio.setmode(gpio.BCM)
     gpio.setup(button_pin, gpio.IN, pull_up_down=gpio.PUD_UP)   #make port 23 an input with pullup engaged
-    gpio.setup(heartbeat_pin, gpio.OUT)
-    gpio.setup(lightning1_pin, gpio.OUT)
-    gpio.setup(lightning2_pin, gpio.OUT)
-    #TODO: set all output pins to zero
+    gpio.setup(heartbeat_pin, gpio.OUT, initial=gpio.LOW)
+    gpio.setup(lightning1_pin, gpio.OUT, initial=gpio.HIGH)
+    gpio.setup(lightning2_pin, gpio.OUT, initial=gpio.LOW)
+    #prepare heartbeat function
+    heartbeat_last = time.time()
 
     #Read in the timing file and build dictionary of playable events
     with open(timingfilename) as f:
@@ -51,32 +59,42 @@ def setup():
             else:                                       #mis-formed input line
                 continue
 
-def mainloop():
-    while(True):
-        try:
-            gpio.wait_for_edge(button_pin, gpio.FALLING)          #wait for falling edge interrupt on button input
-        except KeyboardInterrupt:                         #allow a CTRL+C interrupt from keyboard to abort
-            gpio.cleanup()                                #place GPIO pins in safe idle state
-            return -1                                     #exit to OS
-        trigger()                                         #perform actions triggered by button
-        #TODO: wait for a few seconds before resuming heartbeat and allowing a new trigger
+def main():
+    while(True):                                           #loop forever
+        if not gpio.input(button_pin):                  #button press? (active low)
+            trigger()                                   #then do the thing!  It takes a while (5-30 seconds)
+        now = time.time()
+        #check if it is time to flip the heartbeat LED, do so if needed
+        if (now - heartbeat_last) > (heartbeat_period / 2):
+            if heartbeat_state == 1:
+                heartbeat_state = 0
+            else:
+                heartbeat_state = 1
+            gpio.output(heartbeat_pin, heartbeat_state)
+
 
 def trigger():
-    #TODO - make OS call to execute 'omxplayer -o local soundfile.mp3 &'  (as background process)
-    #TODO - trigger the lights with empirically determined wait times to synch to sound
-
-def playEvent(eventID):
-    ev = thunderevents{eventID}
+    selected = randint(0, len(thunderevents.keys())      #randomly select one
+    eventID = thunderevents.keys()[selected]              #get its ID number
+    ev = thunderevents{eventID}                            #get the selected event object
     if ev.hasSound:
-        #TODO: execute shell command to play mp3 file with desired parameters, as a separate process.
+        args = ["omxplayer"]
+        if ev.soundStartTime != 0:
+            args.append("--pos " + str(ev.soundStartTime))  #TODO: make sure this works without hh:mm:ss formatters
+        if ev.soundVolume != 0:
+            args.append("--vol " + str(ev.soundVolume))     #initial volume in millibels
+        args.append(ev.soundfilename)
+        subprocess.Popen(args)                              #should run concurrently (background process)
     #Now process lighting
     if ev.hasLight:
-        #TODO: wait for ev.lightDelay seconds doing nothing
-        for [off, on] in [ev.lightOffTimes, ev.lightOnTimes]:
-            #TODO wait for off seconds
-            #TODO raise GPIO line, both banks
-            #TODO wait for on seconds
-            #TODO drop GPIO line, both banks
+        time.sleep(ev.lightDelay)                   #wait for light-sound synch delay to expire
+        for offtime, ontime in zip(ev.lightOffTimes, ev.lightOnTimes):  #operate on off/on pairs
+            time.sleep(offtime)             #spend some time with lights off
+            gpio.output(lightning1_pin, gpio.HIGH)  #turn the lights on
+            gpio.output(lightning2_pin, gpio.HIGH)
+            time.sleep(ontime)              #keep lights on for a while
+            gpio.output(lightning1_pin, gpio.LOW)   #turn the lights back off
+            gpio.output(lightning2_pin, gpio.LOW)
 
 class thunder:
     #defines actions to take for a thunder event.
@@ -87,11 +105,13 @@ class thunder:
         self.soundfilename = ""
         self.soundStartTime = 0
         self.soundPlayTime = 0
-        self.soundVolume = 1
+        self.soundVolume = 0
         self.lightDelay = 0
         self.lightOffTimes = []
         self.lightOnTimes = []
 
 
 #TODO: add 'execute main' code that calls main loop
-gpio.cleanup()                                    #place GPIO pins in safe idle state
+if __name__ == '__main__':
+    main()                              #ideally this does not return
+    gpio.cleanup()                      #just in case it does return
