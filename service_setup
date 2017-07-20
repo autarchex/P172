@@ -1,0 +1,43 @@
+20170719 Roop
+Setting up automatic run of my script on boot.
+I followed a guide at www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
+Here are the steps I followed. I created a systemd service called thunder, which executes script thundercloud.py.  All filenames used by that script must be fully specified, as it is root that will be running the script.
+
+
+sudo nano /lib/systemd/system/thunder.service
+-------------
+[Unit]
+Description=ThunderCloud Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/thunder/thundercloud.py
+
+[Install]
+WantedBy=multi-user.target
+--------------
+
+This describes a service that will run after the multi-user environment becomes available.
+The Type=idle bit means run it only after everything else has loaded.
+
+Permission on the unit file needs to be 644:
+sudo chmod 644 /lib/systemd/system/thunder.service
+
+Now tell systemd to use it during boot sequence:
+sudo systemctl daemon-reload
+sudo systemctl enable thunder.service
+
+sudo reboot
+
+
+The service can be checked by doing
+service thunder status
+
+It can be stopped by doing
+sudo service thunder stop
+
+
+
+
+

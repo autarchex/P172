@@ -1,32 +1,44 @@
 Project P172
 Nonosoro LLC
-2017-June-28
+2017-July-19
 
 This system is an audiovisual ambiance tool for a Tiki-themed bar.  It plays the sound of thunder, followed by rain, and synchronized flashing white lights to simulate lightning, at the press of a button.
 
-System controller is a Raspberry Pi Model 1 A+.  This was selected for its power efficiency, and because unlike some Rpi models which are even lower power, it retains the HDMI and audio output ports of its bigger brothers.
+System controller is a Raspberry Pi Model 3.  I originally selected a model A+, for its power efficiency, and because unlike some Rpi models which are even lower power, it retains the HDMI and audio output ports of its bigger brothers.  However I desired remote login capability and like the original RPi boards, this one has trouble powering my USB wifi dongle.  I switched to a model 3 which has built-in wifi.  The RPi 3 is set up to operate its wifi as an access point, to which a laptop can connect and then administrate wirelessly (ssh pi@ThunderCloud.local).  If a wifi dongle is inserted, it can also access the internet in case any software ever needs to be updated, but the wifi dongle will not be present during normal operation.
 
 Peripheral devices are:
 
 1. Analog audio, on audio output port, to a pair of USB-powered PC speakers.
 2. A button input, on GPIO.  Electrically this consists of a button on the case parallel-connected to a connector for a remote button for installation convenience.
-3. A light-enable output, on GPIO.  Electrically this is split into two parallel-connected, 2-conductor cable connectors, which carry ground and enable signal to the lighting controllers.
-4. A "wi-pi" USB wireless LAN dongle, on the sole USB-A port.
-5. Power input, on the USB-micro port.  The power is expected to come from a USB charger brick shared with the speakers.
+3. Two light-enable outputs, on GPIO, which which carry ground and enable signals to the lighting controllers over two 2-conductor cables.  Presently the software toggles these two in parallel.
+4. Power input, on the USB-micro port.  The power is expected to come from a USB charger brick shared with the speakers.
 
 GPIO is 3.3V logic.  Inputs are configured to use internal pullups and therefore sense active-low signals.
 
+A systemd service automatically runs the control program on boot.  System requires roughly 20 seconds to boot up, express its access point, and respond to button press inputs.
+
 -----------
 
-System will be configured to be 'headless' - i.e., without monitor or keyboard.  Given the lack of ethernet port and single USB device port, this necessitates use of a Wi-fi dongle for programming updates.
 
-PLAN:
-- configure Rpi to produce an access point on its wlan0 port when present.
--- This AP will be named "CloudLightning"
--- user: pi
--- pass: to be determined, certainly not written down here.
 
-- configure DHCP on this wireless access point.
--- This will allow me to login via SSH whenever updates or maintenance are required.
+
+
+-----------
+
+System is configured to be 'headless' - i.e., without monitor or keyboard, and without exposed ports other than for power and audio.  This necessitates use of a laptop with wifi for programming updates.  Connect to the RPi's wireless access point:
+
+Wireless SSID: Thundercloud
+Wireless pass: *** (see credentials file)
+subnet is 192.168.42.0
+dhcp hands out IP addresses 192.168.42.10 and above
+
+hostname: ThunderCloud
+domain: .local
+
+primary user name: pi
+primary user pass: *** (see credentials file)
+backup user: autarchex
+
+The control program and its dependencies are located in /home/pi/thunder/ .
 
 

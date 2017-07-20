@@ -1,10 +1,7 @@
 TODO:
-* finish setting up headless mode and autologin on the Pi
-* flesh out the GPIO setup
-* flesh out the selection of a random thunder event
-* flesh out the shell execution of omxplayer, figure out how to play from an arbitrary timepoint and duration
-* figure out how to do relative volume and leadin/leadout
-* heartbeat
+* 3d print an enclosure
+* generate invoice for costs
+
 
 
 

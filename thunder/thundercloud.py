@@ -6,6 +6,7 @@ from random import randint
 import subprocess
 import time
 
+localdir = "/home/pi/thunder/"
 timingfilename = "thundertiming"
 thunderevents = {}                  #dictionary stores available thunder events to play
 button_pin = 40                     #trigger button input on port 23, active low
@@ -25,7 +26,7 @@ def setup():
     gpio.setup(lightning2_pin, gpio.OUT, initial=gpio.LOW)
 
     #Read in the timing file and build dictionary of playable events
-    with open(timingfilename) as f:
+    with open(localdir + timingfilename) as f:
         for line in f:
             tokens = line.strip().split()               #remove whitespace and tokenize
             if len(tokens) < 1:                         #skip empty lines
@@ -62,7 +63,7 @@ def setup():
                 print("***** End of sound for event " + str(eventID))
                 if eventID not in thunderevents.keys():
                     thunderevents[eventID] = thunder()  #create a new event and add to dictionary
-                thunderevents[eventID].soundfilename = filename
+                thunderevents[eventID].soundfilename = localdir + filename
                 thunderevents[eventID].soundStartTime = starttime
                 thunderevents[eventID].soundPlayTime = duration
                 thunderevents[eventID].soundVolume = volume
@@ -85,7 +86,6 @@ def main():
             else:
                 heartbeat_state = 1
             gpio.output(heartbeat_pin, heartbeat_state)
-            print("[heartbeat: " + str(heartbeat_state) + "]")
 
 
 def trigger():
