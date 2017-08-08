@@ -72,23 +72,17 @@ def setup():
                 continue
 
 def main():
-    heartbeat_last = 0
-    heartbeat_state = 0
-    while(True):                                           #loop forever
-        if not gpio.input(button_pin):                  #button press? (active low)
-            trigger()                                   #then do the thing!  It takes a while (5-30 seconds)
-        #manage heartbeat LED
-        now = time.time()
-        if (now - heartbeat_last) > (heartbeat_period / 2):
-            heartbeat_last = now
-            if heartbeat_state == 1:
-                heartbeat_state = 0
-            else:
-                heartbeat_state = 1
-            gpio.output(heartbeat_pin, heartbeat_state)
+   heartbeat_last = 0
+   heartbeat_state = 0
+   while(True):                                           #loop forever
+       gpio.output(heartbeat_pin, 1)     #LED on indicates ready for button presses
+       time.sleep(0.02)
+       if not gpio.input(button_pin):                  #button press? (active low)
+           trigger(button_pin)                                   #then do the thing!  It takes a while (5-30 seconds)
 
 
-def trigger():
+def trigger(pin):
+    gpio.output(heartbeat_pin, 0)   #indicate not accepting new inputs for now
     keys = list(thunderevents.keys())
     print("Triggered!")
     if not keys:
@@ -120,6 +114,8 @@ def trigger():
             time.sleep(ontime)              #keep lights on for a while
             gpio.output(lightning1_pin, gpio.LOW)   #turn the lights back off
             gpio.output(lightning2_pin, gpio.LOW)
+    gpio.output(heartbeat_pin, 1)                   #accepting input again
+
 
 class thunder:
     #defines actions to take for a thunder event.
